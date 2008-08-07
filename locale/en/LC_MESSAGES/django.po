@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-08-01 20:57+0200\n"
+"POT-Creation-Date: 2008-08-07 13:23+0200\n"
 "PO-Revision-Date: 2008-8-1 21:02+0100\n"
 "Last-Translator: Matjaž Črnko <matjaz.crnko@gmail.com>\n"
 "Language-Team: none\n"
@@ -15,30 +15,27 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: views.py:96
+#: views.py:91
 msgid "i-names are not supported"
 msgstr "i-names are not supported"
 
-#: views.py:102
+#: views.py:97
 msgid "The OpenID was invalid"
 msgstr "The OpenID was invalid"
 
-#: views.py:133
+#: views.py:128
 msgid "The request was cancelled"
 msgstr "The request was cancelled"
 
-#: views.py:137
+#: views.py:132
 msgid "Setup needed"
 msgstr "Setup needed"
 
-#: templates/openid_failure.html:4 templates/openid_failure.html.py:6
-msgid "OpenID failed"
-msgstr "OpenID failed"
+#~ msgid "OpenID failed"
+#~ msgstr "OpenID failed"
 
-#: templates/openid_signin.html:4 templates/openid_signin.html.py:7
-msgid "Sign in with your OpenID"
-msgstr "Sign in with your OpenID"
+#~ msgid "Sign in with your OpenID"
+#~ msgstr "Sign in with your OpenID"
 
-#: templates/openid_signin.html:10
-msgid "Sign in"
-msgstr "Sign in"
+#~ msgid "Sign in"
+#~ msgstr "Sign in"

@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version:  0.1\n"
-"Report-Msgid-Bugs-To: matjaz.crnko@gmail.com\n"
-"POT-Creation-Date: 2008-08-01 20:57+0200\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-08-07 13:23+0200\n"
 "PO-Revision-Date: 2008-8-1 21:02+0100\n"
 "Last-Translator: Matjaž Črnko <matjaz.crnko@gmail.com>\n"
 "Language-Team: none\n"
@@ -15,30 +15,27 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: views.py:96
+#: views.py:91
 msgid "i-names are not supported"
 msgstr "i-name ni podprt"
 
-#: views.py:102
+#: views.py:97
 msgid "The OpenID was invalid"
 msgstr "OpenID je neveljaven"
 
-#: views.py:133
+#: views.py:128
 msgid "The request was cancelled"
 msgstr "Povezava je bila prekinjena"
 
-#: views.py:137
+#: views.py:132
 msgid "Setup needed"
 msgstr "Postavitev potrebna"
 
-#: templates/openid_failure.html:4 templates/openid_failure.html.py:6
-msgid "OpenID failed"
-msgstr "Napaka pri prijavi z OpenID"
+#~ msgid "OpenID failed"
+#~ msgstr "Napaka pri prijavi z OpenID"
 
-#: templates/openid_signin.html:4 templates/openid_signin.html.py:7
-msgid "Sign in with your OpenID"
-msgstr "Prijavite se z OpenID"
+#~ msgid "Sign in with your OpenID"
+#~ msgstr "Prijavite se z OpenID"
 
-#: templates/openid_signin.html:10
-msgid "Sign in"
-msgstr "Prijava"
+#~ msgid "Sign in"
+#~ msgstr "Prijava"
