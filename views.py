@@ -13,6 +13,7 @@ elif openid.__version__ < '2.1.0':
     from openid.sreg import SRegRequest
 else: 
     from openid.extensions.sreg import SRegRequest
+    from openid.extensions.pape import Request as PapeRequest
 
 from openid.consumer.consumer import Consumer, \
     SUCCESS, CANCEL, FAILURE, SETUP_NEEDED
@@ -110,6 +111,20 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
                     s.requestField(field_name=v.lower().lstrip(), required=r) # look at requestFields one day
         auth_request.addExtension(s)  
     
+    pape = getattr(settings, 'OPENID_PAPE', False)
+
+    if pape:
+        if openid.__version__ <= '2.0.0' and openid.__version__ >= '2.1.0':
+            raise ImportError, 'For pape extension you need python-openid 2.1.0 or newer'
+        p = PapeRequest()
+        for parg in pape:
+            if parg.lower().strip() == 'policy_list':
+                for v in pape[parg].split(','):
+                    p.addPolicyURI(v)
+            elif parg.lower().strip() == 'max_auth_age':
+                p.max_auth_age = pape[parg]
+        auth_request.addExtension(p)
+
     redirect_url = auth_request.redirectURL(trust_root, redirect_to)
     return HttpResponseRedirect(redirect_url)
 

@@ -3,6 +3,7 @@ if openid.__version__ < '2.1.0':
     from openid.sreg import SRegResponse
 else: 
     from openid.extensions.sreg import SRegResponse
+    from openid.extensions.pape import Response as PapeResponse
 
 from openid.store import nonce as oid_nonce
 from openid.store.interface import OpenIDStore
@@ -15,11 +16,12 @@ from django.conf import settings
 from models import Association, Nonce
 
 class OpenID:
-    def __init__(self, openid, issued, attrs=None, sreg=None):
+    def __init__(self, openid, issued, attrs=None, sreg=None, pape=None):
         self.openid = openid
         self.issued = issued
         self.attrs = attrs or {}
         self.sreg = sreg or {}
+        self.pape = pape or {}
         self.is_iname = (xri.identifierScheme(openid) == 'XRI')
     
     def __repr__(self):
@@ -86,8 +88,7 @@ class DjangoOpenIDStore(OpenIDStore):
     def useNonce(self, server_url, timestamp, salt):
         if abs(timestamp - time.time()) > oid_nonce.SKEW:
             return False
-        
-        
+         
         try:
             nonce = Nonce( server_url=server_url, timestamp=timestamp, salt=salt)
             nonce.save()
@@ -99,14 +100,16 @@ class DjangoOpenIDStore(OpenIDStore):
     def getAuthKey(self):
         # Use first AUTH_KEY_LEN characters of md5 hash of SECRET_KEY
         return md5.new(settings.SECRET_KEY).hexdigest()[:self.AUTH_KEY_LEN]
-    
-    def isDumb(self):
-        return False
 
 def from_openid_response(openid_response):
     issued = int(time.time())
 
-    return OpenID (
-        openid_response.identity_url, issued, openid_response.signed_fields, 
-        SRegResponse.fromSuccessResponse(openid_response)
-    )
+    openid = OpenID(openid_response.identity_url, issued, openid_response.signed_fields)
+
+    if getattr(settings, 'OPENID_PAPE', False):
+        openid.pape = PapeResponse.fromSuccessResponse(openid_response)
+
+    if getattr(settings, 'OPENID_SREG', False):
+        openid.sreg = SRegResponse.fromSuccessResponse(openid_response)
+
+    return openid
