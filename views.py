@@ -99,12 +99,15 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
     if sreg:
         s = SRegRequest()
         for sarg in sreg:
-            if sarg.lower().lstrip() == "required":
-                r = True
+            if sarg.lower().lstrip() == "policy_url":
+                s.policy_url = sreg[sarg]
             else:
-                r = False
-            for v in sreg[sarg].split(','):
-                s.requestField(field_name=v.lower().lstrip(), required=r) # look at requestFields one day
+                if sarg.lower().lstrip() == "required":
+                    r = True
+                else:
+                    r = False
+                for v in sreg[sarg].split(','):
+                    s.requestField(field_name=v.lower().lstrip(), required=r) # look at requestFields one day
         auth_request.addExtension(s)  
     
     redirect_url = auth_request.redirectURL(trust_root, redirect_to)
