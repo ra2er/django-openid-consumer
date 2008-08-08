@@ -44,14 +44,10 @@ def is_valid_next_url(next):
     # path, not a complete URL.
     return bool(next_url_re.match(next))
 
-def begin(request, sreg=None, extension_args=None, redirect_to=None, 
-        on_failure=None):
+def begin(request, redirect_to=None, on_failure=None, template_name='openid_signin.html'):
     
     on_failure = on_failure or default_on_failure
     
-    extension_args = extension_args or {}
-    if sreg:
-        extension_args['sreg.optional'] = sreg
     trust_root = getattr(
         settings, 'OPENID_TRUST_ROOT', get_url_host(request) + '/'
     )
@@ -74,6 +70,7 @@ def begin(request, sreg=None, extension_args=None, redirect_to=None,
         })
     
     user_url = request.REQUEST.get('openid_url', None)
+
     if not user_url:
         request_path = request.path
         if request.GET.get('next'):
@@ -81,7 +78,7 @@ def begin(request, sreg=None, extension_args=None, redirect_to=None,
                 'next': request.GET['next']
             })
         
-        return render('openid_signin.html', {
+        return render(template_name, {
             'action': request_path,
         })
     
@@ -91,24 +88,29 @@ def begin(request, sreg=None, extension_args=None, redirect_to=None,
         return on_failure(request, _('i-names are not supported'))
     
     consumer = Consumer(request.session, DjangoOpenIDStore())
+
     try:
         auth_request = consumer.begin(user_url)
     except DiscoveryFailure:
         return on_failure(request, _('The OpenID was invalid'))
     
-    # Add extension args (for things like simple registration)
-    for name, value in extension_args.items():
-        namespace, key = name.split('.', 1)
-        if namespace == 'sreg':
-            s = SRegRequest()
-            for v in value.split(','):
-                s.requestField(field_name=v)
-            auth_request.addExtension(s)
-
+    sreg = getattr(settings, 'OPENID_SREG', False)
+    
+    if sreg:
+        s = SRegRequest()
+        for sarg in sreg:
+            if sarg.lower().lstrip() == "required":
+                r = True
+            else:
+                r = False
+            for v in sreg[sarg].split(','):
+                s.requestField(field_name=v.lower().lstrip(), required=r) # look at requestFields one day
+        auth_request.addExtension(s)  
+    
     redirect_url = auth_request.redirectURL(trust_root, redirect_to)
     return HttpResponseRedirect(redirect_url)
 
-def complete(request, on_success=None, on_failure=None):
+def complete(request, on_success=None, on_failure=None, failure_template='openid_failure.html'):
     on_success = on_success or default_on_success
     on_failure = on_failure or default_on_failure
     
@@ -125,11 +127,11 @@ def complete(request, on_success=None, on_failure=None):
     if openid_response.status == SUCCESS:
         return on_success(request, openid_response.identity_url, openid_response)
     elif openid_response.status == CANCEL:
-        return on_failure(request, _('The request was cancelled'))
+        return on_failure(request, _('The request was cancelled'), failure_template)
     elif openid_response.status == FAILURE:
-        return on_failure(request, openid_response.message)
+        return on_failure(request, openid_response.message, failure_template)
     elif openid_response.status == SETUP_NEEDED:
-        return on_failure(request, _('Setup needed'))
+        return on_failure(request, _('Setup needed'), failure_template)
     else:
         assert False, "Bad openid status: %s" % openid_response.status
 
@@ -152,8 +154,8 @@ def default_on_success(request, identity_url, openid_response):
     
     return HttpResponseRedirect(next)
 
-def default_on_failure(request, message):
-    return render('openid_failure.html', {
+def default_on_failure(request, message, template_name='openid_failure.html'):
+    return render(template_name, {
         'message': message
     })
 
