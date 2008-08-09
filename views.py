@@ -14,6 +14,8 @@ elif openid.__version__ < '2.1.0':
 else: 
     from openid.extensions.sreg import SRegRequest
     from openid.extensions.pape import Request as PapeRequest
+    from openid.extensions.ax import FetchRequest as AXFetchRequest
+    from openid.extensions.ax import AttrInfo
 
 from openid.consumer.consumer import Consumer, \
     SUCCESS, CANCEL, FAILURE, SETUP_NEEDED
@@ -52,6 +54,7 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
     trust_root = getattr(
         settings, 'OPENID_TRUST_ROOT', get_url_host(request) + '/'
     )
+    # foo derbis.
     redirect_to = redirect_to or getattr(
         settings, 'OPENID_REDIRECT_TO',
         # If not explicitly set, assume current URL with complete/ appended
@@ -125,6 +128,15 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
                 p.max_auth_age = pape[parg]
         auth_request.addExtension(p)
 
+    ax = getattr(settings, 'OPENID_AX', False)
+
+    if ax:
+        axr = AXFetchRequest()
+        for i in ax:
+            ai = AttrInfo(i['type_uri'], i['count'], i['required'], i['alias'])
+            axr.add(ai)
+        auth_request.addExtension(axr)
+
     redirect_url = auth_request.redirectURL(trust_root, redirect_to)
     return HttpResponseRedirect(redirect_url)
 
@@ -133,6 +145,10 @@ def complete(request, on_success=None, on_failure=None, failure_template='openid
     on_failure = on_failure or default_on_failure
     
     consumer = Consumer(request.session, DjangoOpenIDStore())
+    #dummydebug
+    #for r in request.GET.items():
+    #    print r
+
     # JanRain library raises a warning if passed unicode objects as the keys, 
     # so we convert to bytestrings before passing to the library
     query_dict = dict([

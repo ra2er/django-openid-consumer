@@ -4,6 +4,7 @@ if openid.__version__ < '2.1.0':
 else: 
     from openid.extensions.sreg import SRegResponse
     from openid.extensions.pape import Response as PapeResponse
+    from openid.extensions.ax import FetchResponse as AXFetchResponse
 
 from openid.store import nonce as oid_nonce
 from openid.store.interface import OpenIDStore
@@ -16,12 +17,13 @@ from django.conf import settings
 from models import Association, Nonce
 
 class OpenID:
-    def __init__(self, openid, issued, attrs=None, sreg=None, pape=None):
+    def __init__(self, openid, issued, attrs=None, sreg=None, pape=None, ax=None):
         self.openid = openid
         self.issued = issued
         self.attrs = attrs or {}
         self.sreg = sreg or {}
         self.pape = pape or {}
+        self.ax = ax or {}
         self.is_iname = (xri.identifierScheme(openid) == 'XRI')
     
     def __repr__(self):
@@ -88,7 +90,7 @@ class DjangoOpenIDStore(OpenIDStore):
     def useNonce(self, server_url, timestamp, salt):
         if abs(timestamp - time.time()) > oid_nonce.SKEW:
             return False
-         
+        
         try:
             nonce = Nonce( server_url=server_url, timestamp=timestamp, salt=salt)
             nonce.save()
@@ -111,5 +113,8 @@ def from_openid_response(openid_response):
 
     if getattr(settings, 'OPENID_SREG', False):
         openid.sreg = SRegResponse.fromSuccessResponse(openid_response)
+
+    if getattr(settings, 'OPENID_AX', False):
+        openid.ax = AXFetchResponse.fromSuccessResponse(openid_response)
 
     return openid
