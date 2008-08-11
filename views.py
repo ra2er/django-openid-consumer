@@ -61,7 +61,7 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
         get_full_url(request).split('?')[0] + 'complete/'
     )
     # In case they were lazy...
-    if not redirect_to.startswith('http://'):
+    if not redirect_to.startswith('http://') or redirect_to.startswith('https://'):
         redirect_to =  get_url_host(request) + redirect_to
     
     if request.GET.get('next') and is_valid_next_url(request.GET['next']):
@@ -133,8 +133,7 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
     if ax:
         axr = AXFetchRequest()
         for i in ax:
-            ai = AttrInfo(i['type_uri'], i['count'], i['required'], i['alias'])
-            axr.add(ai)
+            axr.add(AttrInfo(i['type_uri'], i['count'], i['required'], i['alias']))
         auth_request.addExtension(axr)
 
     redirect_url = auth_request.redirectURL(trust_root, redirect_to)
