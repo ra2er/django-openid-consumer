@@ -10,12 +10,11 @@ import openid
 if openid.__version__ < '2.0.0':
     raise ImportError, 'You need python-openid 2.0.0 or newer'
 elif openid.__version__ < '2.1.0':
-    from openid.sreg import SRegRequest
+    from openid import sreg as oidsreg
 else: 
-    from openid.extensions.sreg import SRegRequest
-    from openid.extensions.pape import Request as PapeRequest
-    from openid.extensions.ax import FetchRequest as AXFetchRequest
-    from openid.extensions.ax import AttrInfo
+    from openid.extensions import sreg as oidsreg
+    from openid.extensions import pape as oidpape
+    from openid.extensions import ax as oidax
 
 from openid.consumer.consumer import Consumer, \
     SUCCESS, CANCEL, FAILURE, SETUP_NEEDED
@@ -101,7 +100,7 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
     sreg = getattr(settings, 'OPENID_SREG', False)
     
     if sreg:
-        s = SRegRequest()
+        s = oidsreg.Request()
         for sarg in sreg:
             if sarg.lower().lstrip() == "policy_url":
                 s.policy_url = sreg[sarg]
@@ -115,7 +114,7 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
     if pape:
         if openid.__version__ <= '2.0.0' and openid.__version__ >= '2.1.0':
             raise ImportError, 'For pape extension you need python-openid 2.1.0 or newer'
-        p = PapeRequest()
+        p = oidpape.Request()
         for parg in pape:
             if parg.lower().strip() == 'policy_list':
                 for v in pape[parg].split(','):
@@ -127,9 +126,9 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
     ax = getattr(settings, 'OPENID_AX', False)
 
     if ax:
-        axr = AXFetchRequest()
+        axr = oidax.FetchRequest()
         for i in ax:
-            axr.add(AttrInfo(i['type_uri'], i['count'], i['required'], i['alias']))
+            axr.add(oidax.AttrInfo(i['type_uri'], i['count'], i['required'], i['alias']))
         auth_request.addExtension(axr)
 
     redirect_url = auth_request.redirectURL(trust_root, redirect_to)
