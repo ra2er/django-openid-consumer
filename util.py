@@ -1,10 +1,12 @@
 import openid
-if openid.__version__ < '2.1.0':
-    from openid.sreg import SRegResponse
+if openid.__version__ < '2.0.0':
+    raise ImportError, 'You need python-openid 2.0.0 or newer'
+elif openid.__version__ < '2.1.0':
+    from openid import sreg as oidsreg
 else: 
-    from openid.extensions.sreg import SRegResponse
-    from openid.extensions.pape import Response as PapeResponse
-    from openid.extensions.ax import FetchResponse as AXFetchResponse
+    from openid.extensions import sreg as oidsreg
+    from openid.extensions import pape as oidpape
+    from openid.extensions import ax as oidax
 
 from openid.store import nonce as oid_nonce
 from openid.store.interface import OpenIDStore
@@ -109,12 +111,12 @@ def from_openid_response(openid_response):
     openid = OpenID(openid_response.identity_url, issued, openid_response.signed_fields)
 
     if getattr(settings, 'OPENID_PAPE', False):
-        openid.pape = PapeResponse.fromSuccessResponse(openid_response)
+        openid.pape = oidpape.Response.fromSuccessResponse(openid_response)
 
     if getattr(settings, 'OPENID_SREG', False):
-        openid.sreg = SRegResponse.fromSuccessResponse(openid_response)
+        openid.sreg = oidsreg.Response.fromSuccessResponse(openid_response)
 
     if getattr(settings, 'OPENID_AX', False):
-        openid.ax = AXFetchResponse.fromSuccessResponse(openid_response)
+        openid.ax = oidax.FetchResponse.fromSuccessResponse(openid_response)
 
     return openid
