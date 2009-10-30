@@ -37,14 +37,13 @@ def get_url_host(request):
 def get_full_url(request):
     return get_url_host(request) + request.get_full_path()
 
-next_url_re = re.compile('^/[-\w/]+$')
-
-def is_valid_next_url(next):
+def is_valid_next_url(request, next):
     # When we allow this:
     #   /openid/?next=/welcome/
     # For security reasons we want to restrict the next= bit to being a local 
     # path, not a complete URL.
-    return bool(next_url_re.match(next))
+    absUri = request.build_absolute_uri(next)
+    return absUri != next
 
 def begin(request, redirect_to=None, on_failure=None, template_name='openid_signin.html'):
     
@@ -63,7 +62,7 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
     if not redirect_to.startswith('http://') or redirect_to.startswith('https://'):
         redirect_to =  get_url_host(request) + redirect_to
     
-    if request.GET.get('next') and is_valid_next_url(request.GET['next']):
+    if request.GET.get('next') and is_valid_next_url(request, request.GET['next']):
         if '?' in redirect_to:
             join = '&'
         else:
@@ -190,6 +189,6 @@ def default_on_failure(request, message, template_name='openid_failure.html'):
 def signout(request):
     request.session['openids'] = []
     next = request.GET.get('next', '/')
-    if not is_valid_next_url(next):
+    if not is_valid_next_url(request, next):
         next = '/'
     return HttpResponseRedirect(next)
