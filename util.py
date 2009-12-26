@@ -114,7 +114,7 @@ def from_openid_response(openid_response):
         openid.pape = oidpape.Response.fromSuccessResponse(openid_response)
 
     if getattr(settings, 'OPENID_SREG', False):
-        openid.sreg = oidsreg.Response.fromSuccessResponse(openid_response)
+        openid.sreg = oidsreg.SRegResponse.fromSuccessResponse(openid_response)
 
     if getattr(settings, 'OPENID_AX', False):
         openid.ax = oidax.FetchResponse.fromSuccessResponse(openid_response)

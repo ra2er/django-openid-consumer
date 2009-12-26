@@ -99,7 +99,7 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
     sreg = getattr(settings, 'OPENID_SREG', False)
     
     if sreg:
-        s = oidsreg.Request()
+        s = oidsreg.SRegRequest()
         for sarg in sreg:
             if sarg.lower().lstrip() == "policy_url":
                 s.policy_url = sreg[sarg]
