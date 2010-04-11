@@ -176,7 +176,7 @@ def default_on_success(request, identity_url, openid_response):
     OpenIDMiddleware().process_request(request)
     
     next = request.GET.get('next', '').strip()
-    if not next or not is_valid_next_url(next):
+    if not next or not is_valid_next_url(request, next):
         next = getattr(settings, 'OPENID_REDIRECT_NEXT', '/')
     
     return HttpResponseRedirect(next)
