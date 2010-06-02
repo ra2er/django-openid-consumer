@@ -4,7 +4,8 @@ from django.template import RequestContext
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-import md5, re, time, urllib
+import re, time, urllib
+from hashlib import md5
 
 import openid   
 if openid.__version__ < '2.0.0':
@@ -19,7 +20,7 @@ else:
 from openid.consumer.consumer import Consumer, \
     SUCCESS, CANCEL, FAILURE, SETUP_NEEDED
 from openid.consumer.discover import DiscoveryFailure
-from yadis import xri
+from openid.yadis import xri
 
 from util import OpenID, DjangoOpenIDStore, from_openid_response
 from middleware import OpenIDMiddleware
@@ -111,7 +112,7 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
     pape = getattr(settings, 'OPENID_PAPE', False)
 
     if pape:
-        if openid.__version__ <= '2.0.0' and openid.__version__ >= '2.1.0':
+        if openid.__version__ < '2.1.0':
             raise ImportError, 'For pape extension you need python-openid 2.1.0 or newer'
         p = oidpape.Request()
         for parg in pape:
@@ -125,6 +126,8 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
     ax = getattr(settings, 'OPENID_AX', False)
 
     if ax:
+        if openid.__version__ < '2.1.0':
+            raise ImportError, 'For ax extension you need python-openid 2.1.0 or newer'
         axr = oidax.FetchRequest()
         for i in ax:
             axr.add(oidax.AttrInfo(i['type_uri'], i['count'], i['required'], i['alias']))
@@ -138,10 +141,6 @@ def complete(request, on_success=None, on_failure=None, failure_template='openid
     on_failure = on_failure or default_on_failure
     
     consumer = Consumer(request.session, DjangoOpenIDStore())
-    #dummydebug
-    #for r in request.GET.items():
-    #    print r
-
     # JanRain library raises a warning if passed unicode objects as the keys, 
     # so we convert to bytestrings before passing to the library
     query_dict = dict([
