@@ -83,7 +83,7 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
         
         return render(template_name, {
             'action': request_path,
-        })
+        }, context_instance=RequestContext(request))
     
     if xri.identifierScheme(user_url) == 'XRI' and getattr(
         settings, 'OPENID_DISALLOW_INAMES', False
@@ -183,7 +183,7 @@ def default_on_success(request, identity_url, openid_response):
 def default_on_failure(request, message, template_name='openid_failure.html'):
     return render(template_name, {
         'message': message
-    })
+    }, context_instance=RequestContext(request))
 
 def signout(request):
     request.session['openids'] = []
