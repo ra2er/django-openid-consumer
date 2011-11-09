@@ -1,11 +1,10 @@
-from django.http import HttpResponse, HttpResponseRedirect, get_host
+from django.http import HttpResponseRedirect, get_host
 from django.shortcuts import render_to_response as render
 from django.template import RequestContext
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-import re, time, urllib
-from hashlib import md5
+import urllib
 
 import openid   
 if openid.__version__ < '2.0.0':
@@ -22,7 +21,7 @@ from openid.consumer.consumer import Consumer, \
 from openid.consumer.discover import DiscoveryFailure
 from openid.yadis import xri
 
-from util import OpenID, DjangoOpenIDStore, from_openid_response
+from util import DjangoOpenIDStore, from_openid_response
 from middleware import OpenIDMiddleware
 
 from django.utils.html import escape
@@ -60,7 +59,7 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
         get_full_url(request).split('?')[0] + 'complete/'
     )
     # In case they were lazy...
-    if not redirect_to.startswith('http://') or redirect_to.startswith('https://'):
+    if not redirect_to.startswith('http://') or not redirect_to.startswith('https://'):
         redirect_to =  get_url_host(request) + redirect_to
     
     if request.GET.get('next') and is_valid_next_url(request, request.GET['next']):
