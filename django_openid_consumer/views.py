@@ -1,17 +1,16 @@
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response as render
-from django.template import RequestContext
+from django.shortcuts import render
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 import urllib
 
-import openid   
+import openid
 if openid.__version__ < '2.0.0':
     raise ImportError, 'You need python-openid 2.0.0 or newer'
 elif openid.__version__ < '2.1.0':
     from openid import sreg as oidsreg
-else: 
+else:
     from openid.extensions import sreg as oidsreg
     from openid.extensions import pape as oidpape
     from openid.extensions import ax as oidax
@@ -46,9 +45,7 @@ def is_valid_next_url(request, next):
     return absUri != next
 
 def begin(request, redirect_to=None, on_failure=None, template_name='openid_signin.html'):
-    
     on_failure = on_failure or default_on_failure
-    
     trust_root = getattr(
         settings, 'OPENID_TRUST_ROOT', get_url_host(request) + '/'
     )
@@ -61,7 +58,7 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
     # In case they were lazy...
     if not redirect_to.startswith('http://') or not redirect_to.startswith('https://'):
         redirect_to =  get_url_host(request) + redirect_to
-    
+
     if request.GET.get('next') and is_valid_next_url(request, request.GET['next']):
         if '?' in redirect_to:
             join = '&'
@@ -70,7 +67,7 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
         redirect_to += join + urllib.urlencode({
             'next': request.GET['next']
         })
-    
+
     user_url = request.REQUEST.get('openid_url', None)
 
     if not user_url:
@@ -79,25 +76,25 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
             request_path += '?' + urllib.urlencode({
                 'next': request.GET['next']
             })
-        
-        return render(template_name, {
+
+        return render(request, template_name, context={
             'action': request_path,
-        }, context_instance=RequestContext(request))
-    
+        })
+
     if xri.identifierScheme(user_url) == 'XRI' and getattr(
         settings, 'OPENID_DISALLOW_INAMES', False
         ):
         return on_failure(request, _('i-names are not supported'))
-    
+
     consumer = Consumer(request.session, DjangoOpenIDStore())
 
     try:
         auth_request = consumer.begin(user_url)
     except DiscoveryFailure:
         return on_failure(request, _('The OpenID was invalid'))
-    
+
     sreg = getattr(settings, 'OPENID_SREG', False)
-    
+
     if sreg:
         s = oidsreg.SRegRequest()
         for sarg in sreg:
@@ -107,7 +104,7 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
                 for v in sreg[sarg].split(','):
                     s.requestField(field_name=v.lower().lstrip(), required=(sarg.lower().lstrip() == "required"))
         auth_request.addExtension(s)  
-    
+
     pape = getattr(settings, 'OPENID_PAPE', False)
 
     if pape:
@@ -138,7 +135,7 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
 def complete(request, on_success=None, on_failure=None, failure_template='openid_failure.html'):
     on_success = on_success or default_on_success
     on_failure = on_failure or default_on_failure
-    
+
     consumer = Consumer(request.session, DjangoOpenIDStore())
     # JanRain library raises a warning if passed unicode objects as the keys, 
     # so we convert to bytestrings before passing to the library
@@ -148,7 +145,7 @@ def complete(request, on_success=None, on_failure=None, failure_template='openid
 
     url = get_url_host(request) + request.path
     openid_response = consumer.complete(query_dict, url)
-    
+
     if openid_response.status == SUCCESS:
         return on_success(request, openid_response.identity_url, openid_response)
     elif openid_response.status == CANCEL:
@@ -163,26 +160,26 @@ def complete(request, on_success=None, on_failure=None, failure_template='openid
 def default_on_success(request, identity_url, openid_response):
     if 'openids' not in request.session.keys():
         request.session['openids'] = []
-    
+
     # Eliminate any duplicates
     request.session['openids'] = [
         o for o in request.session['openids'] if o.openid != identity_url
     ]
     request.session['openids'].append(from_openid_response(openid_response))
-    
+
     # Set up request.openids and request.openid, reusing middleware logic
     OpenIDMiddleware().process_request(request)
-    
+
     next = request.GET.get('next', '').strip()
     if not next or not is_valid_next_url(request, next):
         next = getattr(settings, 'OPENID_REDIRECT_NEXT', '/')
-    
+
     return HttpResponseRedirect(next)
 
 def default_on_failure(request, message, template_name='openid_failure.html'):
-    return render(template_name, {
+    return render(request, template_name, context={
         'message': message
-    }, context_instance=RequestContext(request))
+    })
 
 def signout(request):
     request.session['openids'] = []
