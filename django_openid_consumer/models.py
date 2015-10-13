@@ -1,6 +1,7 @@
 from django.db import models
 
 class Nonce(models.Model):
+
     server_url = models.URLField(db_index=True)
     timestamp  = models.IntegerField(db_index=True)
     salt       = models.CharField(max_length=50)
@@ -9,6 +10,7 @@ class Nonce(models.Model):
         return "Nonce: %i @ %s" % (self.timestamp, self.server_url)
 
 class Association(models.Model):
+
     server_url = models.URLField(db_index=True)
     handle     = models.CharField(max_length=255, db_index=True)
     secret     = models.TextField(max_length=255) # Stored base64 encoded

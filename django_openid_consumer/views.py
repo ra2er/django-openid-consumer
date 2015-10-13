@@ -103,7 +103,7 @@ def begin(request, redirect_to=None, on_failure=None, template_name='openid_sign
             else:
                 for v in sreg[sarg].split(','):
                     s.requestField(field_name=v.lower().lstrip(), required=(sarg.lower().lstrip() == "required"))
-        auth_request.addExtension(s)  
+        auth_request.addExtension(s)
 
     pape = getattr(settings, 'OPENID_PAPE', False)
 
