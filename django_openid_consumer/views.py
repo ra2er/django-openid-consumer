@@ -31,7 +31,7 @@ def get_url_host(request):
         protocol = 'https'
     else:
         protocol = 'http'
-    host = escape(request.get_host(request))
+    host = escape(request.get_host())
     return '%s://%s' % (protocol, host)
 
 def get_full_url(request):
