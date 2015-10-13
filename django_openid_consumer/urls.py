@@ -1,7 +1,7 @@
-from django.conf.urls.defaults import *
+from django.conf.urls import url, patterns
 
 urlpatterns = patterns('',
-	(r'^$', 'django_openid_consumer.views.begin'),
-    (r'^complete/$', 'django_openid_consumer.views.complete'),
-    (r'^signout/$', 'django_openid_consumer.views.signout'),
+    url(r'^$', 'django_openid_consumer.views.begin'),
+    url(r'^complete/$', 'django_openid_consumer.views.complete'),
+    url(r'^signout/$', 'django_openid_consumer.views.signout'),
 )
